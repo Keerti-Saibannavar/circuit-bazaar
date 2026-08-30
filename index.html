@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit Bazaar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+ 
+<style>
+  :root{
+    --bg: #fffffffc;
+    --panel: #fefefe;
+    --trace: #2ce551;
+    --copper: #f82f07;
+    --silk: #1e4c35;
+    --muted: #0c0d0d;
+  }
+ 
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--silk);
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+ 
+  header{
+    padding:20px;
+  }
+ 
+  h1{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--copper);
+    margin:0 0 10px;
+  }
+ 
+  #searchInput{
+    padding:15px;
+    width:350px;
+    border-radius:10px;
+    border:1px solid #060807;
+    background:var(--panel);
+    color:var(--muted);
+  }
+ 
+  #categoryRail{
+    margin-top:20px;
+  }
+ 
+  .chip-btn{
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid #100c0c;
+    background:var(--panel);
+    color:var(--muted);
+    cursor:pointer;
+    margin-right:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.8rem;
+  }
+ 
+  .chip-btn.active{
+    background:var(--trace);
+    color:#06251a;
+    font-weight:700;
+  }
+ 
+  main{
+    padding:20px;
+  }
+ 
+  #productGrid{
+    display:grid;
+    gap:16px;
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  }
+ 
+  .card{
+    background:var(--panel);
+    border:1px solid #1a1d1c;
+    border-radius:10px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+ 
+  .card img{
+    width:100%;
+    height:250px;
+    object-fit:cover;
+    display:block;
+    background:#08201a;
+  }
+ 
+  .card-body{
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    flex:1;
+  }
+ 
+  .card h3{
+    margin:0 0 8px;
+    font-size:1.25rem;
+  }
+ 
+  .card .spec{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.90em;
+    font-weight:500;
+    color:var(--muted);
+    margin:0 0 10px;
+  }
+ 
+  .card .price{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--copper);
+    font-weight:1000;
+    margin:0 0 10px;
+  }
+ 
+  .btn-cart{
+    display:block;
+    text-align:center;
+    background:var(--trace);
+    color:#06251a;
+    padding:10px;
+    border-radius:6px;
+    font-weight:700;
+    text-decoration:none;
+    margin-top:auto;
+  }
+</style>
+</head>
+ 
+<body>
+ 
+  <header>
+    <h1>Circuit Bazaar</h1>
+    <input id="searchInput" type="text" placeholder="Search parts…">
+    <div id="categoryRail">
+      <button class="chip-btn active" data-cat="all">All</button>
+      <button class="chip-btn" data-cat="micro">Microcontrollers</button>
+      <button class="chip-btn" data-cat="sensor">Sensors</button>
+      <button class="chip-btn" data-cat="passive">Passive Components</button>
+      <button class="chip-btn" data-cat="semi">Semiconductors</button>
+      <button class="chip-btn" data-cat="display">Displays</button>
+      <button class="chip-btn" data-cat="tools">Tools & Accessories</button>
+      <button class="chip-btn" data-cat="power">Power</button>
+    </div>
+  </header>
+ 
+  <main>
+    <div id="productGrid"></div>
+  </main>
+ 
+<script>
+
+  const products = [
+    {
+      name:"Arduino Uno R3",
+      cat:"micro",
+      spec:"ATmega328P · 14 digital I/O · USB",
+      price:"₹550",
+      q:"Arduino Uno R3 board",
+      img:"image/Arduino UNO R3.jpg"
+    },
+    {
+      name:"ESP32 Dev Board",
+      cat:"micro",
+      spec:"WiFi + Bluetooth · dual-core · 30 pin",
+      price:"₹430",
+      q:"ESP32 WROOM dev board",
+      img:"image/ESP32 Dev Board.jpg"
+    },
+    { 
+      name:"Raspberry Pi 4 (4GB)",
+      cat:"micro", 
+      spec:"Quad-core · 4GB RAM · dual HDMI",
+      price:"₹6,499",
+      q:"Raspberry Pi 4 model B 4GB",
+      img:"image/Raspberry Pi 4 (4GB).jpg" 
+    },
+    {
+      name:"Arduino Nano", 
+      cat:"micro", 
+      spec:"ATmega328 · breadboard-friendly",
+      price:"₹320", 
+      q:"Arduino Nano board",
+      img:"image/Arduino Nano.jpg"
+    },
+    {
+      name:"NodeMCU ESP8266",
+      cat:"micro", 
+      spec:"WiFi SoC · Lua/Arduino IDE",
+      price:"₹280", 
+      q:"NodeMCU ESP8266 board",
+      img:"image/NodeMCU ESP8266.jpg"
+    },
+    {
+      name:"HC-SR04 Ultrasonic",
+      cat:"sensor",
+      spec:"2–400cm range · 5V TTL output",
+      price:"₹80",
+      q:"HC-SR04 ultrasonic sensor",
+      img:"image/HC-SR04 Ultrasonic.jpg"
+    },
+    { 
+      name:"PIR Motion Sensor",
+      cat:"sensor", 
+      spec:"HC-SR501 · adjustable delay",
+      price:"₹90",
+      q:"PIR motion sensor HC-SR501",
+      img:"image/PIR Motion Sensor.jpg"
+    },
+    { 
+      name:"DHT11 Temp & Humidity", 
+      cat:"sensor", 
+      spec:"±2°C · ±5% RH · digital out", 
+      price:"₹110", 
+      q:"DHT11 temperature humidity sensor",
+      img:"image/DHT11 Temp & Humidity.jpg"
+     },
+    { 
+      name:"IR Obstacle Sensor", 
+      cat:"sensor",
+      spec:"Line-follow ready · digital out", 
+      price:"₹45", 
+      q:"IR infrared obstacle sensor module",
+      img:"image/IR Obstacle Sensor.jpg" 
+    },
+    {
+      name:"Soil Moisture Sensor",
+      cat:"sensor",
+      spec:"Analog + digital output", 
+      price:"₹60",
+      q:"soil moisture sensor module",
+      img:"image/Soil Moisture Sensor.jpg" 
+    },
+    {
+      name:"MQ-2 Gas Sensor", 
+      cat:"sensor", 
+      spec:"LPG, smoke, methane detection",
+      price:"₹150", 
+      q:"MQ-2 gas sensor module",
+      img:"image/MQ-2 Gas Sensor.jpg"  
+    },
+    {
+      name:"Resistor Kit (600pc)",
+      cat:"passive", 
+      spec:"1Ω–1MΩ · 1/4W · 30 values", 
+      price:"₹199", 
+      q:"resistor kit 600 pieces assorted",
+      img:"image/Resistor Kit (600pc).jpg"  
+    },
+    { 
+      name:"Ceramic Capacitor Set",
+      cat:"passive", 
+      spec:"300pc · 0.1pF–1µF assorted", 
+      price:"₹180", 
+      q:"ceramic capacitor kit assorted",
+      img:"image/Ceramic Capacitor Set.jpg"  
+    },
+    { 
+      name:"Electrolytic Capacitor Set", 
+      cat:"passive", 
+      spec:"120pc · 1µF–1000µF", 
+      price:"₹220", 
+      q:"electrolytic capacitor kit assorted",
+      img:"image/Electrolytic Capacitor Set.jpg"  
+    },
+    {
+      name:"Potentiometer 10K", 
+      cat:"passive", 
+      spec:"Linear taper · 6mm shaft (5pc)", 
+      price:"₹95", 
+      q:"10k potentiometer linear 5 pack",
+      img:"image/Potentiometer 10K.jpg"  
+    },
+    { 
+      name:"LED Assortment (5mm)", 
+      cat:"semi", 
+      spec:"300pc · 5 colours", 
+      price:"₹150", 
+      q:"5mm LED assortment kit",
+      img:"image/LED Assortment (5mm).jpg"  
+    },
+    { 
+      name:"1N4007 Diode (100pc)", 
+      cat:"semi", 
+      spec:"1A · 1000V rectifier diode", 
+      price:"₹90", 
+      q:"1N4007 diode pack 100",
+      img:"image/1N4007 Diode (100pc).jpg"  
+    },
+    { 
+      name:"BC547 NPN Transistor", 
+      cat:"semi", 
+      spec:"General purpose · TO-92 (20pc)", 
+      price:"₹60", 
+      q:"BC547 transistor pack",
+      img:"image/BC547 NPN Transistor.jpg"  
+    },
+    { 
+      name:"555 Timer IC", 
+      cat:"semi", 
+      spec:"DIP-8 · astable/monostable (10pc)", 
+      price:"₹120", 
+      q:"555 timer IC pack",
+      img:"image/555 Timer IC.jpg"  
+    },
+    { 
+      name:"L298N Motor Driver", 
+      cat:"semi", 
+      spec:"Dual H-bridge · 2A per channel", 
+      price:"₹180", 
+      q:"L298N motor driver module",
+      img:"image/L298N Motor Driver.jpg"  
+    },
+    { 
+      name:"9V Battery + Clip", 
+      cat:"power", 
+      spec:"Alkaline · snap connector", 
+      price:"₹65", 
+      q:"9V battery with clip connector",
+      img:"image/9V Battery + Clip.jpg"  
+    },
+    { 
+      name:"18650 Li-ion Cell", 
+      cat:"power", 
+      spec:"3.7V · 2600mAh rechargeable", 
+      price:"₹210", 
+      q:"18650 lithium battery 2600mAh",
+      img:"image/18650 Li-ion Cell.jpg"  
+    },
+    { 
+      name:"HW-131 Breadboard PSU", 
+      cat:"power", 
+      spec:"3.3V/5V dual rail module", 
+      price:"₹95", 
+      q:"breadboard power supply module 3.3V 5V",
+      img:"image/HW-131 Breadboard PSU.jpg" 
+     },
+    { 
+      name:"Mini Solar Panel 5V", 
+      cat:"power", 
+      spec:"5V 100mA · 70x70mm", 
+      price:"₹130", 
+      q:"mini solar panel 5V 100mA",
+      img:"image/Mini Solar Panel 5V.jpg"  
+    },
+ 
+    { 
+      name:"16x2 LCD Display", 
+      cat:"display", 
+      spec:"Blue backlight · HD44780 driver", 
+      price:"₹150", 
+      q:"16x2 LCD display module",
+      img:"image/16x2 LCD Display.jpg"  
+    },
+    { 
+      name:"0.96 OLED Display", 
+      cat:"display", 
+      spec:"128x64 · I2C · SSD1306", 
+      price:"₹280", 
+      q:"0.96 inch OLED display I2C",
+      img:"image/0.96 OLED Display.jpg"  
+    },
+    { 
+      name:"7-Segment Display", 
+      cat:"display", 
+      spec:"Common cathode · 0.56\" (5pc)",
+      price:"₹70", 
+      q:"7 segment display common cathode pack",
+      img:"image/7-Segment Display.jpg"  
+      },
+ 
+    { 
+      name:"Breadboard 830-point", 
+      cat:"tools", 
+      spec:"Full-size · self-adhesive back", 
+      price:"₹110", 
+      q:"830 point breadboard",
+      img:"image/Breadboard 830-point.jpg"  
+    },
+    { 
+      name:"Jumper Wire Set (120pc)", 
+      cat:"tools", 
+      spec:"M-M, M-F, F-F · assorted length", 
+      price:"₹150", 
+      q:"jumper wire kit male female",
+      img:"image/Jumper Wire Set (120pc).jpg" 
+    },
+    { 
+      name:"25W Soldering Iron Kit", 
+      cat:"tools", 
+      spec:"Stand, solder wire, desoldering pump", 
+      price:"₹399", 
+      q:"soldering iron kit 25W with stand",
+      img:"image/25W Soldering Iron Kit.jpg" 
+    },
+    { 
+      name:"Digital Multimeter", 
+      cat:"tools",
+     spec:"AC/DC volt, current, resistance", 
+     price:"₹450", 
+     q:"digital multimeter DT830",
+     img:"image/Digital Multimeter.jpg" 
+    },
+    { 
+      name:"Wire Cutter and Wire Stripper", 
+      cat:"tools",
+     spec:"Wire Cutter & Stripper", 
+     price:"₹40", 
+     q:"Wire Cutter and Wire Stripper",
+     img:"image/Wire Cutter and Wire Stripper.jpg" 
+    }
+  ];
+ 
+  const AMAZON_ASSOCIATE_TAG = ""; // put your tag here later, e.g. "yourtag-21"
+ 
+  function amazonUrl(query){
+    let url = "https://www.amazon.in/s?k=" + encodeURIComponent(query);
+    if (AMAZON_ASSOCIATE_TAG) url += "&tag=" + AMAZON_ASSOCIATE_TAG;
+    return url;
+  }
+ 
+  let activeCat = "all";
+  const grid = document.getElementById("productGrid");
+ 
+  function renderProducts(){
+    const query = document.getElementById("searchInput").value.trim().toLowerCase();
+ 
+    const filtered = products.filter(p =>
+      (activeCat === "all" || p.cat === activeCat) &&
+      (p.name.toLowerCase().includes(query) || p.spec.toLowerCase().includes(query))
+    );
+ 
+    grid.innerHTML = filtered.map(p => `
+      <div class="card">
+        <img src="${p.img}" alt="${p.name}">
+        <div class="card-body">
+          <h3>${p.name}</h3>
+          <p class="spec">${p.spec}</p>
+          <p class="price">${p.price}</p>
+          <a class="btn-cart" href="${amazonUrl(p.q)}" target="_blank">Add to Cart</a>
+        </div>
+      </div>
+    `).join("");
+  }
+ 
+  document.querySelectorAll(".chip-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeCat = btn.dataset.cat;
+      renderProducts();
+    });
+  });
+ 
+  document.getElementById("searchInput").addEventListener("input", renderProducts);
+ 
+  renderProducts();
+</script>
+ 
+</body>
+</html>
+ 
